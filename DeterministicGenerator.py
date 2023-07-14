@@ -81,7 +81,7 @@ def processDisjunction(disj):
     """
     disjunctExpansions = []
     if type(disj.disjuncts[0]) is tuple:
-        disjuncts = map(lambda x : x[0], disj.disjuncts)
+        disjuncts = [x[0] for x in disj.disjuncts]
     else:
         disjuncts = disj.disjuncts
     for disjunct in disjuncts:
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     for rule in grammar.publicRules:
         expansions = processRHS(rule.rhs)
         for expansion in expansions:
-            print expansion
+            print(expansion)
 
 
 

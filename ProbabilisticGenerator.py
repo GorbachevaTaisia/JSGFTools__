@@ -61,7 +61,7 @@ def weightedChoice(listOfTuples):
             if i > 0:
                 listOfWeights[i] += listOfWeights[i-1]
         return listOfWeights
-    choices, weights = zip(*listOfTuples)
+    choices, weights = list(zip(*listOfTuples))
     cumdist = accum(list(weights))
     x = random.random() * cumdist[-1]
     return choices[bisect.bisect(cumdist, x)]
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     argParser.add_argument('grammarFile')
     argParser.add_argument('iterations', type=int, nargs=1, help='number of strings to generate')
     args = argParser.parse_args()
-    fileStream = open(args.grammarFile)
+    fileStream = open(args.grammarFile, encoding='utf-8')
     numIterations = args.iterations[0]
     grammar = parser.getGrammarObject(fileStream)
     if len(grammar.publicRules) != 1:
@@ -152,7 +152,7 @@ if __name__ == '__main__':
             disjuncts.append(rhs)
         newStartSymbol = gram.Disjunction(disjuncts)
         for i in range(numIterations):
-            print processRHS(newStartSymbol)
+            print(processRHS(newStartSymbol))
         ###
         #else:
             #sys.exit('Bye')
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         startSymbol = grammar.publicRules[0]
         for i in range(numIterations):
             expansions = processRHS(startSymbol.rhs)
-            print expansions
+            print(expansions)
 
 
 

@@ -60,7 +60,8 @@ Notable features of JSGF that are **not** handled by this parser are:
 
 import sys
 import JSGFGrammar as gram
-from pyparsing import * 
+import pyparsing as pp
+ppu = pp.pyparsing_unicode
 
 sys.setrecursionlimit(100000)
 usePackrat = True
@@ -162,36 +163,36 @@ def foundSeq(s, loc, toks):
         return list(toks[0])[0]
 
 # PyParsing rule for a weight
-weight = (Literal('/').suppress() + (Word(nums + '.')).setResultsName('weightAmount') + Literal('/').suppress()).setParseAction(foundWeight).setResultsName("weight")
+weight = (pp.Literal('/').suppress() + (pp.Word(nums + '.')).setResultsName('weightAmount') + pp.Literal('/').suppress()).setParseAction(foundWeight).setResultsName("weight")
 
 # PyParsing rule for a token
-token = Word(alphanums+"'_-,.?@").setResultsName('token').setParseAction(foundToken)
+token = pp.Word(alphanums+"'_-,.?@").setResultsName('token').setParseAction(foundToken)
 
 # PyParsing rule for a nonterminal reference
-nonterminal = Combine(Literal('<') + Word(alphanums+'$_:;,=|/\\()[]@#%!^&~') + Literal('>')).setParseAction(foundNonterminal).setResultsName('NonTerminal')
+nonterminal = pp.Combine(Literal('<') + pp.Word(alphanums+'$_:;,=|/\\()[]@#%!^&~') + pp.Literal('>')).setParseAction(foundNonterminal).setResultsName('NonTerminal')
 
-Sequence = Forward()
+Sequence = pp.Forward()
 
-weightedExpression = (weight + Group(Sequence).setResultsName("expr")).setResultsName('weightedExpression').setParseAction(foundWeightedExpression)
+weightedExpression = (weight + pp.Group(Sequence).setResultsName("expr")).setResultsName('weightedExpression').setParseAction(foundWeightedExpression)
 
-weightAlternatives = Forward()
-weightedPrime = Literal('|').suppress() + weightAlternatives
-weightAlternatives << MatchFirst([(Group(weightedExpression).setResultsName("disj1") + Group(weightedPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), Group(weightedExpression).setParseAction(foundSeq)])
+weightAlternatives = pp.Forward()
+weightedPrime = pp.Literal('|').suppress() + weightAlternatives
+weightAlternatives << pp.MatchFirst([(pp.Group(weightedExpression).setResultsName("disj1") + pp.Group(weightedPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), pp.Group(weightedExpression).setParseAction(foundSeq)])
 
-disj = Forward()
-disjPrime = Literal('|').suppress() + disj
-disj << MatchFirst([(Group(Sequence).setResultsName("disj1") + Group(disjPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), Group(Sequence).setParseAction(foundSeq)])
+disj = pp.Forward()
+disjPrime = pp.Literal('|').suppress() + disj
+disj << pp.MatchFirst([(Group(Sequence).setResultsName("disj1") + pp.Group(disjPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), pp.Group(Sequence).setParseAction(foundSeq)])
 
-topLevel = MatchFirst([disj, weightAlternatives])
-StartSymbol = Optional(Literal('public')).setResultsName('public') + nonterminal.setResultsName('identifier') + Literal('=').suppress() + Group(topLevel).setResultsName('ruleDef') + Literal(';').suppress() + stringEnd
+topLevel = pp.MatchFirst([disj, weightAlternatives])
+StartSymbol = pp.Optional(pp.Literal('public')).setResultsName('public') + nonterminal.setResultsName('identifier') + pp.Literal('=').suppress() + pp.Group(topLevel).setResultsName('ruleDef') + pp.Literal(';').suppress() + pp.stringEnd
 
 
-Expression = MatchFirst([nonterminal, token])
+Expression = pp.MatchFirst([nonterminal, token])
 
-Grouping = Literal('(').suppress() + topLevel + Literal(')').suppress()
-OptionalGrouping = (Literal('[').suppress() + Group(topLevel).setResultsName("optionalItem") + Literal(']').suppress()).setParseAction(foundOptionalGroup)
+Grouping = pp.Literal('(').suppress() + topLevel + pp.Literal(')').suppress()
+OptionalGrouping = (pp.Literal('[').suppress() + pp.Group(topLevel).setResultsName("optionalItem") + pp.Literal(']').suppress()).setParseAction(foundOptionalGroup)
 
-Sequence << Group(OneOrMore(MatchFirst([Grouping, OptionalGrouping, Expression]))).setResultsName("seq").setParseAction(foundSeq)
+Sequence << pp.Group(pp.OneOrMore(pp.MatchFirst([Grouping, OptionalGrouping, Expression]))).setResultsName("seq").setParseAction(foundSeq)
 
 def nocomment(oldline):
     """
@@ -230,7 +231,7 @@ def getGrammarObject(fileStream):
         while match:
             tokens, start, end = match
             #print 'rule dict is', tokens.asDict()
-            if 'public' in tokens.keys():
+            if 'public' in list(tokens.keys()):
                 grammar.addPublicRule(gram.Rule(tokens.identifier, list(tokens.ruleDef)))
             grammar.addRule(gram.Rule(tokens.identifier, list(tokens.ruleDef)))
 
@@ -241,4 +242,4 @@ def getGrammarObject(fileStream):
 if __name__ == '__main__':
     fileStream = open(sys.argv[1])
     grammar = getGrammarObject(fileStream)
-    print grammar
+    print(grammar)
