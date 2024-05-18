@@ -163,13 +163,13 @@ def foundSeq(s, loc, toks):
         return list(toks[0])[0]
 
 # PyParsing rule for a weight
-weight = (pp.Literal('/').suppress() + (pp.Word(nums + '.')).setResultsName('weightAmount') + pp.Literal('/').suppress()).setParseAction(foundWeight).setResultsName("weight")
+weight = (pp.Literal('/').suppress() + (pp.Word(ppu.nums + '.')).setResultsName('weightAmount') + pp.Literal('/').suppress()).setParseAction(foundWeight).setResultsName("weight")
 
 # PyParsing rule for a token
-token = pp.Word(alphanums+"'_-,.?@").setResultsName('token').setParseAction(foundToken)
+token = pp.Word(ppu.alphanums+"'_-,.?@").setResultsName('token').setParseAction(foundToken)
 
 # PyParsing rule for a nonterminal reference
-nonterminal = pp.Combine(Literal('<') + pp.Word(alphanums+'$_:;,=|/\\()[]@#%!^&~') + pp.Literal('>')).setParseAction(foundNonterminal).setResultsName('NonTerminal')
+nonterminal = pp.Combine(pp.Literal('<') + pp.Word(ppu.alphanums+'$_:;,=|/\\()[]@#%!^&~') + pp.Literal('>')).setParseAction(foundNonterminal).setResultsName('NonTerminal')
 
 Sequence = pp.Forward()
 
@@ -181,7 +181,7 @@ weightAlternatives << pp.MatchFirst([(pp.Group(weightedExpression).setResultsNam
 
 disj = pp.Forward()
 disjPrime = pp.Literal('|').suppress() + disj
-disj << pp.MatchFirst([(Group(Sequence).setResultsName("disj1") + pp.Group(disjPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), pp.Group(Sequence).setParseAction(foundSeq)])
+disj << pp.MatchFirst([(pp.Group(Sequence).setResultsName("disj1") + pp.Group(disjPrime).setResultsName("disj2")).setParseAction(foundPair).setResultsName("pair"), pp.Group(Sequence).setParseAction(foundSeq)])
 
 topLevel = pp.MatchFirst([disj, weightAlternatives])
 StartSymbol = pp.Optional(pp.Literal('public')).setResultsName('public') + nonterminal.setResultsName('identifier') + pp.Literal('=').suppress() + pp.Group(topLevel).setResultsName('ruleDef') + pp.Literal(';').suppress() + pp.stringEnd
